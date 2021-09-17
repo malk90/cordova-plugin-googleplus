@@ -1,9 +1,16 @@
 var __googleSdkReady = false;
+var __googleSdkError = false;
 var __googleCallbacks = [];
 
 var GooglePlusProxy = {
 
     isAvailable: function (success, error) {
+        if (__googleSdkError)
+        {
+            error();
+            return;
+        }
+        
         if (!__googleSdkReady) {
             return __googleCallbacks.push(function() {
                 this.isAvailable(success, error);
@@ -46,6 +53,12 @@ var GooglePlusProxy = {
     },
 
     trySilentLogin: function (success, error, options) {
+        if (__googleSdkError)
+        {
+            error();
+            return;
+        }
+        
         if (!__googleSdkReady) {
             return __googleCallbacks.push(function() {
                 this.trySilentLogin(success, error, options);
@@ -56,6 +69,12 @@ var GooglePlusProxy = {
     },
 
     login: function (success, error, options) {
+        if (__googleSdkError)
+        {
+            error();
+            return;
+        }
+        
         var that = this;
         if (!__googleSdkReady) {
             return __googleCallbacks.push(function() {
@@ -71,6 +90,12 @@ var GooglePlusProxy = {
     },
 
     logout: function (success, error) {
+        if (__googleSdkError)
+        {
+            error();
+            return;
+        }
+        
         if (!__googleSdkReady) {
             return __googleCallbacks.push(function() {
                 this.logout(success, error);
@@ -83,6 +108,12 @@ var GooglePlusProxy = {
     },
 
     disconnect: function (success, error) {
+        if (__googleSdkError)
+        {
+            error();
+            return;
+        }
+        
         if (!__googleSdkReady) {
             return __googleCallbacks.push(function() {
                 this.disconnect(success, error);
@@ -117,10 +148,16 @@ if (window.location.protocol === "file:") {
                 // Listen for sign-in state changes.
                 gapi.auth2.getAuthInstance().isSignedIn.listen(GooglePlusProxy.updateSigninStatus);
             }, function(error) {
+                __googleSdkError = true;
+                
                 if (error.details) {
                     console.error(error.details);
                 } else {
                     console.error(error);
+                }
+
+                for (var i = 0; i < __googleCallbacks.length; i++) {
+                    __googleCallbacks[i].call();
                 }
             });
         });
